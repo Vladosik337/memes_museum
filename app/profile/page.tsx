@@ -2,10 +2,39 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import "/public/style.css";
+import React, { useState } from "react";
 
 const ProfilePage = () => {
   const { data: session } = useSession();
   const user = session?.user;
+  const [firstName, setFirstName] = useState(user?.first_name || "");
+  const [lastName, setLastName] = useState(user?.last_name || "");
+  const [notification, setNotification] = useState<string | null>(null);
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firstName || !lastName) {
+      setNotification("Всі поля обовʼязкові");
+      return;
+    }
+    const res = await fetch("/api/profile/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: user?.email,
+        first_name: firstName,
+        last_name: lastName,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setNotification("Профіль оновлено!");
+      // Можна перезавантажити сторінку або оновити session
+      window.location.reload();
+    } else {
+      setNotification(data.error || "Помилка оновлення");
+    }
+  };
 
   return (
     <div className="text-gray-900 min-h-screen dashboard-bg">
@@ -59,7 +88,58 @@ const ProfilePage = () => {
               </p>
             </div>
           </section>
-          {/* Далі можна додати статистику, квитки, історію покупок */}
+          <section className="bg-white py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              {(!user?.first_name || !user?.last_name) && (
+                <form
+                  className="max-w-md mx-auto mt-8 space-y-4"
+                  onSubmit={handleProfileUpdate}
+                >
+                  <h2 className="text-xl font-bold mb-4">Заповніть профіль</h2>
+                  <div>
+                    <label
+                      htmlFor="firstName"
+                      className="block mb-1"
+                    >
+                      Ім&#39;я
+                    </label>
+                    <input
+                      id="firstName"
+                      type="text"
+                      className="form-input w-full px-3 py-2 rounded-lg"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="lastName"
+                      className="block mb-1"
+                    >
+                      Прізвище
+                    </label>
+                    <input
+                      id="lastName"
+                      type="text"
+                      className="form-input w-full px-3 py-2 rounded-lg"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                  >
+                    Зберегти
+                  </button>
+                  {notification && (
+                    <div className="mt-2 text-red-600">{notification}</div>
+                  )}
+                </form>
+              )}
+              {/* Далі можна додати статистику, квитки, історію покупок */}
+            </div>
+          </section>
         </div>
       </div>
     </div>
