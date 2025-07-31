@@ -1,8 +1,8 @@
 "use client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import "/public/style.css";
 import React, { useState } from "react";
+import "/public/style.css";
 
 const ProfilePage = () => {
   const { data: session } = useSession();
@@ -97,10 +97,7 @@ const ProfilePage = () => {
                 >
                   <h2 className="text-xl font-bold mb-4">Заповніть профіль</h2>
                   <div>
-                    <label
-                      htmlFor="firstName"
-                      className="block mb-1"
-                    >
+                    <label htmlFor="firstName" className="block mb-1">
                       Ім&#39;я
                     </label>
                     <input
@@ -112,10 +109,7 @@ const ProfilePage = () => {
                     />
                   </div>
                   <div>
-                    <label
-                      htmlFor="lastName"
-                      className="block mb-1"
-                    >
+                    <label htmlFor="lastName" className="block mb-1">
                       Прізвище
                     </label>
                     <input
