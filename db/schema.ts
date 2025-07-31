@@ -3,7 +3,7 @@ import { integer, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   first_name: varchar({ length: 100 }).notNull(),
-  last_name: varchar({ length: 100 }).notNull(),
+  last_name: varchar({ length: 100 }),
   email: varchar({ length: 255 }).notNull().unique(),
   password_hash: varchar({ length: 255 }), // для password-based
   role: varchar({ length: 50 }).notNull(), // 'admin' або 'user'
