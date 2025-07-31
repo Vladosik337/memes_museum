@@ -40,10 +40,10 @@ export const authOptions = {
           .from(users)
           .where(eq(users.email, email));
         if (existing.length === 0) {
-          // Створити нового користувача з пустими first_name, last_name
+          // Створити нового користувача: name з GitHub записати у first_name
           await db.insert(users).values({
             email,
-            first_name: "",
+            first_name: profile.name || "",
             last_name: "",
             role: "user",
             oidc_sub,
@@ -53,6 +53,22 @@ export const authOptions = {
         }
       }
       return true;
+    },
+    async session({ session }) {
+      // Додаємо кастомні поля з БД у session.user
+      if (session?.user?.email) {
+        const userDb = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, session.user.email));
+        if (userDb.length > 0) {
+          session.user.first_name = userDb[0].first_name;
+          session.user.last_name = userDb[0].last_name;
+          session.user.role = userDb[0].role;
+          session.user.oidc_sub = userDb[0].oidc_sub;
+        }
+      }
+      return session;
     },
     // ...інші callbacks
   },

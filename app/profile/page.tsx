@@ -13,7 +13,9 @@ const ProfilePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-3">
-              <Link href="/" className="logo text-gray-900">MuseMeme</Link>
+              <Link href="/" className="logo text-gray-900">
+                MuseMeme
+              </Link>
             </div>
             <div className="text-center text-gray-700 font-medium hidden md:block">
               Особистий кабінет
@@ -35,21 +37,29 @@ const ProfilePage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <div className="flex flex-col items-center space-y-4 mb-6">
                 <div className="user-avatar w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                  <span>{user?.first_name && user?.last_name ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase() : "?"}</span>
+                  <span>
+                    {user?.first_name && user?.last_name
+                      ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+                      : "?"}
+                  </span>
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.email}
+                    {user?.first_name && user?.last_name
+                      ? `${user.first_name} ${user.last_name}`
+                      : user?.email}
                   </h1>
                   <p className="text-gray-600">{user?.email}</p>
                 </div>
               </div>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Ласкаво просимо до вашого особистого кабінету. Тут ви можете переглядати свої квитки, історію покупок та статистику відвідувань.
+                Ласкаво просимо до вашого особистого кабінету. Тут ви можете
+                переглядати свої квитки, історію покупок та статистику
+                відвідувань.
               </p>
             </div>
           </section>
-          
+          {/* Далі можна додати статистику, квитки, історію покупок */}
         </div>
       </div>
     </div>
