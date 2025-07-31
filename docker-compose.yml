@@ -13,7 +13,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U memes_user"]
+      test: ["CMD-SHELL", "pg_isready -U memes_user -d memes_db"]
       interval: 10s
       timeout: 5s
       retries: 5
