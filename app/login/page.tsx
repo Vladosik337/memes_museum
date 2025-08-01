@@ -1,11 +1,12 @@
 "use client";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import "/public/style.css";
 
 const LoginPage: React.FC = () => {
+  const { data: session, status } = useSession();
   const [showRegister, setShowRegister] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -26,6 +27,12 @@ const LoginPage: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  React.useEffect(() => {
+    if (session?.user?.email) {
+      router.push("/profile");
+    }
+  }, [session, router]);
 
   // GitHub OAuth sign in
   const handleGithub = async () => {

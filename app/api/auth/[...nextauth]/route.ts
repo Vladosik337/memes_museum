@@ -55,7 +55,19 @@ export const authOptions = {
       },
     }),
   ],
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.first_name = user.first_name;
+        token.last_name = user.last_name;
+        token.role = user.role;
+        token.oidc_sub = user.oidc_sub;
+        token.email = user.email;
+      }
+      return token;
+    },
     async signIn({ account, profile }: { account: any; profile?: any }) {
       if (account?.provider === "github" && profile) {
         const email = profile.email;
@@ -67,7 +79,7 @@ export const authOptions = {
           .from(users)
           .where(eq(users.email, email));
         if (existing.length === 0) {
-          // Створити нового користувача: name з GitHub записати у first_name
+          // Створити нового користувача (name з GitHub записати у first_name
           await db.insert(users).values({
             email,
             first_name: profile.name || "",
@@ -83,6 +95,7 @@ export const authOptions = {
     },
     async session({
       session,
+      token,
     }: {
       session: {
         user: User & {
@@ -120,15 +133,13 @@ export const authOptions = {
         session.user.role = userDb[0].role ?? undefined;
         session.user.oidc_sub = userDb[0].oidc_sub ?? undefined;
         session.user.email = userDb[0].email;
-        
+        console.log("session.user after DB lookup:", session.user);
       } else {
         console.log("userDb is empty, session.user:", session.user);
       }
       return session;
     },
-    // ...інші callbacks
   },
-  // ...інші опції (session, pages)
 };
 
 const handler = NextAuth(authOptions);

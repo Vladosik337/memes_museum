@@ -1,5 +1,5 @@
 "use client";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
 import "/public/style.css";
@@ -58,7 +58,10 @@ const ProfilePage = () => {
               <span className="text-gray-700 hidden sm:block">
                 {user?.first_name ? `Привіт, ${user.first_name}!` : "Вітаємо!"}
               </span>
-              <button className="text-gray-900 underline hover:text-orange-600">
+              <button
+                className="text-gray-900 underline hover:text-orange-600"
+                onClick={() => signOut({ callbackUrl: "/login" })}
+              >
                 Вийти
               </button>
             </div>
