@@ -8,6 +8,13 @@
       "when": 1753991595230,
       "tag": "0000_careless_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1754014252712,
+      "tag": "0001_chubby_zeigeist",
+      "breakpoints": true
     }
   ]
 }
