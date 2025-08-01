@@ -74,10 +74,24 @@ const LoginPage: React.FC = () => {
       const data = await res.json();
       if (res.ok && data.success) {
         setNotification({
-          message: "Акаунт створено! Тепер увійдіть.",
+          message: "Акаунт створено! Виконуємо вхід...",
           type: "success",
         });
-        setShowRegister(false);
+        // Автоматичний логін після реєстрації
+        const loginResult = await signIn("credentials", {
+          redirect: false,
+          email: registerEmail,
+          password: registerPassword,
+          callbackUrl: "/profile",
+        });
+        if (!loginResult?.error) {
+          setTimeout(() => router.push("/profile"), 1200);
+        } else {
+          setNotification({
+            message: "Помилка автоматичного входу",
+            type: "error",
+          });
+        }
       } else {
         setNotification({
           message: data.error || "Помилка реєстрації",
@@ -132,7 +146,24 @@ const LoginPage: React.FC = () => {
                   className="oauth-button w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium hover:bg-gray-50"
                   onClick={handleGithub}
                 >
-                  <span className="mr-3">🐙</span> Увійти через GitHub
+                  <span className="mr-3" aria-label="GitHub">
+                    {/* Heroicons GitHub SVG */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-6 h-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 2C6.477 2 2 6.484 2 12.021c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.004.07 1.532 1.032 1.532 1.032.892 1.529 2.341 1.088 2.91.832.091-.646.35-1.088.636-1.339-2.221-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.295 2.748-1.025 2.748-1.025.546 1.378.202 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.847-2.337 4.695-4.566 4.944.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.579.688.481C19.138 20.184 22 16.438 22 12.021 22 6.484 17.523 2 12 2z"
+                      />
+                    </svg>
+                  </span>
+                  Увійти через GitHub
                 </button>
               </div>
               <div className="relative mb-6">
@@ -299,18 +330,7 @@ const LoginPage: React.FC = () => {
                     onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                   />
                 </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="agree-terms"
-                    className="ml-2 text-sm text-gray-600"
-                  >
-                    Я погоджуюсь з умовами
-                  </label>
-                </div>
+
                 <button
                   type="submit"
                   className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"

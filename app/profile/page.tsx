@@ -13,6 +13,12 @@ const ProfilePage = () => {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    // потім видалити
+    console.log({
+      email: user?.email,
+      first_name: firstName,
+      last_name: lastName,
+    });
     if (!firstName || !lastName) {
       setNotification("Всі поля обовʼязкові");
       return;
@@ -29,7 +35,6 @@ const ProfilePage = () => {
     const data = await res.json();
     if (data.success) {
       setNotification("Профіль оновлено!");
-      // Можна перезавантажити сторінку або оновити session
       window.location.reload();
     } else {
       setNotification(data.error || "Помилка оновлення");
