@@ -23,22 +23,25 @@ export const users = pgTable("users", {
 export const tickets = pgTable("tickets", {
   id: serial("id").primaryKey(),
   user_id: integer("user_id").notNull(), // FK на users
+  purchase_id: integer("purchase_id"), // FK на purchases
   first_name: varchar("first_name", { length: 64 }).notNull(),
   last_name: varchar("last_name", { length: 64 }).notNull(),
   email: varchar("email", { length: 128 }).notNull(),
   visit_date: date("visit_date").notNull(),
   comment: text("comment"),
+  number: varchar("number", { length: 32 }).notNull().unique(), // унікальний номер квитка
   qr_code: varchar("qr_code", { length: 128 }),
-  status: varchar("status", { length: 32 }).default("active"),
+  status: varchar("status", { length: 32 }).default("active"), // active, cancelled, used, etc.
+  is_owner: integer("is_owner", { mode: "boolean" }).default(0).notNull(), // чи це квиток замовника
   created_at: timestamp("created_at").defaultNow(),
 });
 
-export const ticket_guests = pgTable("ticket_guests", {
-  id: serial("id").primaryKey(),
-  ticket_id: integer("ticket_id").notNull(), // FK на tickets
-  first_name: varchar("first_name", { length: 64 }).notNull(),
-  last_name: varchar("last_name", { length: 64 }).notNull(),
-});
+// export const ticket_guests = pgTable("ticket_guests", {
+//   id: serial("id").primaryKey(),
+//   ticket_id: integer("ticket_id").notNull(), // FK на tickets
+//   first_name: varchar("first_name", { length: 64 }).notNull(),
+//   last_name: varchar("last_name", { length: 64 }).notNull(),
+// });
 
 export const purchases = pgTable("purchases", {
   id: serial("id").primaryKey(),
