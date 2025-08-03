@@ -14,11 +14,15 @@
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.3",
+    "jspdf": "^3.0.1",
     "next": "15.4.4",
     "next-auth": "^4.24.11",
     "pg": "^8.16.3",
+    "qrcode.react": "^4.2.0",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "svg2pdf": "^1.1.1",
+    "svg2pdf.js": "^2.5.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

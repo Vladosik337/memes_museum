@@ -1,5 +1,8 @@
 "use client";
+import { generateTicketPDF } from "@/utils/generateTicketPDF";
+import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
+import "svg2pdf.js";
 
 export default function TicketPurchasePage() {
   // Мок: чи авторизований користувач (реалізувати через next-auth)
@@ -24,6 +27,18 @@ export default function TicketPurchasePage() {
   const [showSummary, setShowSummary] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [ticketData, setTicketData] = useState<null | {
+    number: string;
+    qr_code: string;
+  }>(null);
+  const [ticketsData, setTicketsData] = useState<
+    Array<{
+      number: string;
+      qr_code: string;
+      first_name: string;
+      last_name: string;
+    }>
+  >([]);
 
   // Статичні ціни
   const WEEKDAY_PRICE = 250;
@@ -64,11 +79,41 @@ export default function TicketPurchasePage() {
     setForm({ ...form, guests });
   };
 
+  function validateForm(): string | null {
+    if (!form.firstName.trim()) return "Вкажіть ім'я";
+    if (!form.lastName.trim()) return "Вкажіть прізвище";
+    if (!form.email.trim() || !form.email.includes("@"))
+      return "Некоректний email";
+    if (!form.date.trim()) return "Вкажіть дату";
+
+    // Перевірка дати
+    const now = new Date();
+    const visitDate = new Date(form.date);
+    visitDate.setHours(0, 0, 0, 0);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (visitDate < today) return "Неможливо купити квиток на минулі дні";
+
+    // Перевірка часу (тільки якщо купується на сьогодні)
+    if (visitDate.getTime() === today.getTime()) {
+      const currentHour = now.getHours();
+      if (currentHour < 10 || currentHour >= 17) {
+        return "Квитки можна купити лише з 10:00 до 17:00 (за годину до закриття)";
+      }
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setSuccess(null);
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/tickets/purchase", {
         method: "POST",
@@ -83,9 +128,17 @@ export default function TicketPurchasePage() {
           userId: 1, // замінити на реальний userId
         }),
       });
-      const data: { success: boolean; error?: string } = await res.json();
+      const data = await res.json();
       if (!data.success) throw new Error(data.error || "Помилка покупки");
-      setSuccess("Квиток успішно заброньовано!");
+      setSuccess("Квитки успішно заброньовано!");
+      setTicketsData(
+        data.tickets.map((t: any) => ({
+          number: t.number,
+          qr_code: t.qr_code,
+          first_name: t.first_name,
+          last_name: t.last_name,
+        }))
+      );
       setForm({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -110,13 +163,61 @@ export default function TicketPurchasePage() {
     setShowSummary(true);
   }
 
-  function handlePayment() {
+  async function handlePayment() {
     setPaymentLoading(true);
-    setTimeout(() => {
+    setError(null);
+    setSuccess(null);
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       setPaymentLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch("/api/tickets/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          date: form.date,
+          comment: form.comment,
+          guests: form.guests,
+          userId: 1, // замінити на реальний userId
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Помилка покупки");
+      setSuccess("Квитки успішно заброньовано!");
+      setTicketsData(
+        data.tickets.map((t: any) => ({
+          number: t.number,
+          qr_code: t.qr_code,
+          first_name: t.first_name,
+          last_name: t.last_name,
+        }))
+      );
+      setForm({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        date: "",
+        comment: "",
+        guests: [],
+      });
       setPaymentSuccess(true);
       setShowSummary(false);
-    }, 3000);
+      console.log("[Payment] success", { ticketsData: data.tickets });
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("Помилка покупки");
+      }
+    } finally {
+      setPaymentLoading(false);
+    }
   }
 
   return (
@@ -286,9 +387,9 @@ export default function TicketPurchasePage() {
             </div>
           </div>
         )}
-        {paymentSuccess && (
+        {paymentSuccess && ticketsData.length > 0 && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl border-2 border-green-400">
+            <div className="bg-white p-8 max-w-md w-full text-center shadow-2xl max-h-[80vh] overflow-y-auto">
               <h4 className="text-2xl font-bold mb-6 text-green-600">
                 Оплата успішна!
               </h4>
@@ -301,13 +402,71 @@ export default function TicketPurchasePage() {
                 <div className="font-bold">
                   Можна переглянути у профілі користувача.
                 </div>
+                <div className="mt-4 flex flex-col items-center gap-4">
+                  {ticketsData.map((t) => (
+                    <div
+                      key={t.number}
+                      className="p-4 w-full flex flex-col items-center bg-gray-50"
+                    >
+                      <span className="font-bold mb-1">
+                        {t.first_name} {t.last_name}
+                      </span>
+                      <QRCodeSVG
+                        value={t.qr_code}
+                        size={128}
+                        id={`qr-svg-${t.number}`}
+                      />
+                      <div className="text-xs mt-2 mb-2">Номер: {t.number}</div>
+                      <button
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 mb-2 transition-colors duration-300 shadow w-full"
+                        onClick={() => {
+                          const svg = document.getElementById(
+                            `qr-svg-${t.number}`
+                          );
+                          if (svg) {
+                            const serializer = new XMLSerializer();
+                            const source = serializer.serializeToString(svg);
+                            const blob = new Blob([source], {
+                              type: "image/svg+xml;charset=utf-8",
+                            });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = `ticket-${t.number}.svg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                          }
+                        }}
+                      >
+                        Завантажити квиток (SVG)
+                      </button>
+                      <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 mb-2 transition-colors duration-300 shadow w-full"
+                        onClick={() => {
+                          generateTicketPDF({
+                            museumName: "Музей Мемів",
+                            firstName: t.first_name,
+                            lastName: t.last_name,
+                            ticketNumber: t.number,
+                            visitDate: form.date,
+                            qrSvgId: `qr-svg-${t.number}`,
+                          });
+                        }}
+                      >
+                        Завантажити квиток (PDF)
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg mb-4 transition-colors duration-300 shadow-lg w-full">
-                Завантажити квитки
-              </button>
               <button
-                className="mt-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-2 px-6 rounded-lg transition-colors duration-300 shadow w-full"
-                onClick={() => setPaymentSuccess(false)}
+                className="mt-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-2 px-6 transition-colors duration-300 shadow w-full"
+                onClick={() => {
+                  setPaymentSuccess(false);
+                  setTicketsData([]);
+                }}
               >
                 Закрити
               </button>
