@@ -1,7 +1,7 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import "/public/style.css";
 
@@ -20,6 +20,9 @@ const LoginPage: React.FC = () => {
     type: string;
   } | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialCallbackUrl = searchParams.get("callbackUrl") || "/profile";
+  const [callbackUrl, setCallbackUrl] = useState(initialCallbackUrl);
 
   React.useEffect(() => {
     if (notification) {
@@ -30,14 +33,14 @@ const LoginPage: React.FC = () => {
 
   React.useEffect(() => {
     if (session?.user?.email) {
-      router.push("/profile");
+      router.push(callbackUrl);
     }
-  }, [session, router]);
+  }, [session, router, callbackUrl]);
 
   // GitHub OAuth sign in
   const handleGithub = async () => {
     setNotification({ message: "Перенаправляємо до GitHub...", type: "info" });
-    await signIn("github", { callbackUrl: "/profile" });
+    await signIn("github", { callbackUrl });
   };
 
   // Password login
@@ -47,7 +50,7 @@ const LoginPage: React.FC = () => {
       redirect: false,
       email: loginEmail,
       password: loginPassword,
-      callbackUrl: "/profile",
+      callbackUrl,
     });
     if (result?.error) {
       setNotification({ message: "Невірний email або пароль", type: "error" });
@@ -56,7 +59,7 @@ const LoginPage: React.FC = () => {
         message: "Успішний вхід! Перенаправляємо...",
         type: "success",
       });
-      setTimeout(() => router.push("/profile"), 1200);
+      setTimeout(() => router.push(callbackUrl), 1200);
     }
   };
 
@@ -89,10 +92,10 @@ const LoginPage: React.FC = () => {
           redirect: false,
           email: registerEmail,
           password: registerPassword,
-          callbackUrl: "/profile",
+          callbackUrl,
         });
         if (!loginResult?.error) {
-          setTimeout(() => router.push("/profile"), 1200);
+          setTimeout(() => router.push(callbackUrl), 1200);
         } else {
           setNotification({
             message: "Помилка автоматичного входу",
