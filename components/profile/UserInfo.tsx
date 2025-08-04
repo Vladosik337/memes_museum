@@ -7,14 +7,20 @@ type UserInfoProps = {
   email: string;
 };
 
-export const UserInfo: React.FC<UserInfoProps> = ({ firstName, lastName, email }) => {
+export const UserInfo: React.FC<UserInfoProps> = ({
+  firstName,
+  lastName,
+  email,
+}) => {
   return (
     <section className="bg-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="flex flex-col items-center space-y-4 mb-6">
           <div className="user-avatar w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold bg-orange-600">
             <span>
-              {firstName && lastName ? `${firstName[0]}${lastName[0]}`.toUpperCase() : "?"}
+              {firstName && lastName
+                ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+                : "?"}
             </span>
           </div>
           <div>
