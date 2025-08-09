@@ -1,13 +1,5 @@
+import type { Ticket } from "@/types/profile";
 import React from "react";
-
-type Ticket = {
-  id: number;
-  number: string;
-  visitDate: string;
-  firstName: string;
-  lastName: string;
-  status: string;
-};
 
 type ActiveTicketsProps = {
   tickets: Ticket[];
