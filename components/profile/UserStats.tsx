@@ -26,7 +26,7 @@ export const UserStats: React.FC<UserStatsProps> = ({
           <div className="text-2xl font-bold text-orange-600 mb-1">
             {totalVisits}
           </div>
-          <div className="text-sm text-gray-600">Відвідувань</div>
+          <div className="text-sm text-gray-600">Квитків</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6 text-center hover:shadow-md transition-shadow duration-300">
           <div className="text-2xl font-bold text-green-600 mb-1">
