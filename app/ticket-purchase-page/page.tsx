@@ -2,6 +2,7 @@
 import { useTicketFormUser } from "@/hooks/useTicketFormUser";
 import { generateTicketPDF } from "@/utils/generateTicketPDF";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import "svg2pdf.js";
@@ -232,30 +233,29 @@ export default function TicketPurchasePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-3">
-              <h1 className="logo text-gray-900 text-2xl font-bold">
+              <Link
+                href="/"
+                className="logo text-gray-900 hover:text-orange-600 transition-colors text-2xl font-bold"
+              >
                 MuseMeme
-              </h1>
+              </Link>
             </div>
-            <div className="text-center text-gray-700 font-medium hidden md:block">
-              Музей мемів всеосяжного Інтернету
-            </div>
-            {isAuthenticated ? (
+            <div className="flex items-center space-x-4">
+              {isAuthenticated && (
+                <Link
+                  href="/profile"
+                  className="underline hover:text-orange-800"
+                >
+                  До профілю
+                </Link>
+              )}
               <button
                 className="text-gray-900 underline hover:text-orange-600"
-                onClick={async () => {
-                  await signOut({ callbackUrl: "/" });
-                }}
+                onClick={() => signOut({ callbackUrl: "/login" })}
               >
                 Вийти
               </button>
-            ) : (
-              <a
-                href="/login"
-                className="text-gray-900 underline hover:text-orange-600"
-              >
-                Увійти/Перевірити квиток
-              </a>
-            )}
+            </div>
           </div>
         </div>
       </header>
