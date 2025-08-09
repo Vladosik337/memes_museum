@@ -1,0 +1,1 @@
+ALTER TABLE "ticket_prices" RENAME COLUMN "is_active1" TO "is_active";

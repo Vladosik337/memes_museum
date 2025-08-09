@@ -29,6 +29,41 @@
       "when": 1754017494442,
       "tag": "0003_tiny_garia",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1754757895535,
+      "tag": "0004_fast_thundra",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1754758298931,
+      "tag": "0005_strong_yellowjacket",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1754758393293,
+      "tag": "0006_unusual_nuke",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1754758405663,
+      "tag": "0007_kind_kylun",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1754760628596,
+      "tag": "0008_thin_swarm",
+      "breakpoints": true
     }
   ]
 }

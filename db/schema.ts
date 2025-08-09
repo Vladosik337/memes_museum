@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   integer,
   pgTable,
@@ -32,7 +33,7 @@ export const tickets = pgTable("tickets", {
   number: varchar("number", { length: 32 }).notNull().unique(), // унікальний номер квитка
   qr_code: varchar("qr_code", { length: 128 }),
   status: varchar("status", { length: 32 }).default("active"), // active, cancelled, used, etc.
-  is_owner: integer("is_owner", { mode: "boolean" }).default(0).notNull(), // чи це квиток замовника
+  isOwner: boolean("is_owner").default(false).notNull(), // чи це квиток замовника
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -50,4 +51,25 @@ export const purchases = pgTable("purchases", {
   total_amount: integer("total_amount").notNull(),
   status: varchar("status", { length: 32 }).default("completed"),
   created_at: timestamp("created_at").defaultNow(),
+});
+
+export const ticket_prices = pgTable("ticket_prices", {
+  id: serial("id").primaryKey(),
+  price: integer("price").notNull(), // ціна у копійках (або гривнях)
+  valid_from: date("valid_from").notNull(),
+  valid_to: date("valid_to"), // nullable: якщо null — ціна діє безстроково
+  type: varchar("type", { length: 32 }).notNull(), // тип квитка: standard, student, child, vip тощо
+  description: varchar("description", { length: 128 }),
+  is_active: boolean("is_active").default(true).notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull(), // FK на users
+  text: text("text").notNull(),
+  allow_publish: boolean("allow_publish").default(false).notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
