@@ -1,5 +1,11 @@
+"use client";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+
 // Header головної сторінки музею мемів
 export default function Header() {
+  const { data: session } = useSession();
+  const isAuth = !!session?.user;
   return (
     <header className="z-40 w-full bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,12 +16,12 @@ export default function Header() {
           <div className="text-center text-gray-700 font-medium hidden md:block">
             Музей мемів всеосяжного Інтернету
           </div>
-          <a
-            href="/login"
+          <Link
+            href={isAuth ? "/profile" : "/login"}
             className="text-gray-900 underline hover:text-orange-600"
           >
-            Увійти/Перевірити квиток
-          </a>
+            Перевірити квиток
+          </Link>
         </div>
       </div>
     </header>
