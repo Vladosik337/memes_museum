@@ -1,6 +1,7 @@
 import { db } from "@/db";
-import { purchases, tickets } from "@/db/schema";
+import { purchases, ticket_prices, tickets } from "@/db/schema";
 import type { MuseumPurchase, MuseumTicket } from "@/types/entities";
+import { and, eq, gte, isNull, lte, or } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 // Тип для тіла запиту
@@ -66,37 +67,6 @@ function generateQrCode(ticketNumber: string, email: string): string {
   return JSON.stringify({ ticket: ticketNumber, email });
 }
 
-function toMuseumTicket(dbTicket: any): MuseumTicket {
-  return {
-    id: dbTicket.id,
-    user_id: dbTicket.user_id,
-    purchase_id: dbTicket.purchase_id ?? undefined,
-    first_name: dbTicket.first_name,
-    last_name: dbTicket.last_name,
-    email: dbTicket.email,
-    visit_date: String(dbTicket.visit_date),
-    comment: dbTicket.comment ?? undefined,
-    number: dbTicket.number,
-    qr_code: dbTicket.qr_code,
-    status: dbTicket.status,
-    is_owner: dbTicket.is_owner,
-    created_at: dbTicket.created_at ? dbTicket.created_at.toISOString() : "",
-  };
-}
-
-function toMuseumPurchase(dbPurchase: any): MuseumPurchase {
-  return {
-    id: dbPurchase.id,
-    user_id: dbPurchase.user_id,
-    purchase_date: String(dbPurchase.purchase_date),
-    total_amount: dbPurchase.total_amount,
-    status: dbPurchase.status,
-    created_at: dbPurchase.created_at
-      ? dbPurchase.created_at.toISOString()
-      : "",
-  };
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body: TicketPurchaseBody = await req.json();
@@ -104,19 +74,49 @@ export async function POST(req: NextRequest) {
     if (error)
       return NextResponse.json({ success: false, error }, { status: 400 });
 
-    // Додати покупку
+    // Визначаємо дату для ціни
+    const visitDate = formatDateForDB(body.date);
+    // Визначаємо тип квитка за датою (weekend/weekday)
+    const jsDate = new Date(body.date);
+    const day = jsDate.getDay(); // 0=неділя, 6=субота
+    const ticketType = day === 0 || day === 6 ? "weekend" : "weekday";
+    const ticketCount = 1 + (body.guests?.length || 0);
+    // Отримуємо актуальну ціну для типу на цю дату
+    const [priceRow] = await db
+      .select()
+      .from(ticket_prices)
+      .where(
+        and(
+          eq(ticket_prices.type, ticketType),
+          eq(ticket_prices.is_active, true),
+          lte(ticket_prices.valid_from, visitDate),
+          or(
+            isNull(ticket_prices.valid_to),
+            gte(ticket_prices.valid_to, visitDate)
+          )
+        )
+      )
+      .orderBy(ticket_prices.valid_from, ticket_prices.id);
+    if (!priceRow) {
+      return NextResponse.json(
+        { success: false, error: `Ціна не знайдена для типу ${ticketType}` },
+        { status: 400 }
+      );
+    }
+    const ticketPrice = priceRow.price;
+    const totalAmount = ticketCount * ticketPrice;
+
+    // Додаємо покупку з сумою
     const [purchase] = await db
       .insert(purchases)
       .values({
         user_id: body.userId,
-        purchase_date: formatDateForDB(body.date),
-        total_amount: 1 + (body.guests?.length || 0),
+        purchase_date: visitDate,
+        total_amount: totalAmount,
         status: "completed",
       })
       .returning();
 
-    // Квитки для замовника та гостей
-    const allTickets: MuseumTicket[] = [];
     // Квиток для замовника
     const ticketNumber = generateTicketNumber();
     const qrCode = generateQrCode(ticketNumber, body.email);
@@ -128,15 +128,15 @@ export async function POST(req: NextRequest) {
         first_name: body.firstName,
         last_name: body.lastName,
         email: body.email,
-        visit_date: formatDateForDB(body.date),
+        visit_date: visitDate,
         comment: body.comment,
         qr_code: qrCode,
         status: "active",
         number: ticketNumber,
-        is_owner: 1,
+        isOwner: true,
       })
       .returning();
-    allTickets.push(toMuseumTicket(mainTicket));
+    const allTickets: MuseumTicket[] = [toMuseumTicket(mainTicket)];
     // Квитки для гостей
     if (Array.isArray(body.guests) && body.guests.length > 0) {
       for (const g of body.guests) {
@@ -150,12 +150,12 @@ export async function POST(req: NextRequest) {
             first_name: g.firstName,
             last_name: g.lastName,
             email: body.email, // email замовника
-            visit_date: formatDateForDB(body.date),
+            visit_date: visitDate,
             comment: body.comment,
             qr_code: guestQrCode,
             status: "active",
             number: guestTicketNumber,
-            is_owner: 0,
+            isOwner: false,
           })
           .returning();
         allTickets.push(toMuseumTicket(guestTicket));
@@ -174,4 +174,35 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+}
+
+// Типізація для toMuseumTicket/toMuseumPurchase
+function toMuseumTicket(dbTicket: unknown): MuseumTicket {
+  const t = dbTicket as any;
+  return {
+    id: t.id,
+    user_id: t.user_id,
+    purchase_id: t.purchase_id ?? undefined,
+    first_name: t.first_name,
+    last_name: t.last_name,
+    email: t.email,
+    visit_date: String(t.visit_date),
+    comment: t.comment ?? undefined,
+    number: t.number,
+    qr_code: t.qr_code,
+    status: t.status,
+    is_owner: t.isOwner,
+    created_at: t.created_at ? t.created_at.toISOString() : "",
+  };
+}
+function toMuseumPurchase(dbPurchase: unknown): MuseumPurchase {
+  const p = dbPurchase as any;
+  return {
+    id: p.id,
+    user_id: p.user_id,
+    purchase_date: String(p.purchase_date),
+    total_amount: p.total_amount,
+    status: p.status,
+    created_at: p.created_at ? p.created_at.toISOString() : "",
+  };
 }
