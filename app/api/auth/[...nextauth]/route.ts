@@ -3,11 +3,12 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
+import type { AuthOptions } from "next-auth";
 import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -63,11 +64,13 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.first_name = user.first_name;
         token.last_name = user.last_name;
         token.role = user.role;
         token.oidc_sub = user.oidc_sub;
         token.email = user.email;
+        console.log("JWT callback: user:", user, "token:", token);
       }
       return token;
     },
@@ -110,8 +113,14 @@ export const authOptions = {
         expires: string;
       };
     }) {
-      console.log("session callback called, session:", session);
+      console.log(
+        "session callback called, session:",
+        session,
+        "token:",
+        token
+      );
       type UserDbType = {
+        id: number;
         first_name: string | null;
         last_name: string | null;
         role: string;
@@ -131,6 +140,7 @@ export const authOptions = {
           .where(eq(users.oidc_sub, session.user.oidc_sub));
       }
       if (userDb.length > 0) {
+        session.user.id = String(userDb[0].id);
         session.user.first_name = userDb[0].first_name ?? undefined;
         session.user.last_name = userDb[0].last_name ?? undefined;
         session.user.role = userDb[0].role ?? undefined;
