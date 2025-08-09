@@ -1,11 +1,21 @@
 "use client";
+import { ActiveTickets } from "@/components/profile/ActiveTickets";
+import { PurchaseHistory } from "@/components/profile/PurchaseHistory";
+import { QuickActions } from "@/components/profile/QuickActions";
+import { UserInfo } from "@/components/profile/UserInfo";
+import { UserStats } from "@/components/profile/UserStats";
+import type { Purchase, Ticket } from "@/types/profile";
+import { generateTicketsPDF } from "@/utils/generateTicketPDF";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
+import useSWR from "swr";
 import "/public/style.css";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 const ProfilePage = () => {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const user = session?.user;
   const [firstName, setFirstName] = useState(user?.first_name || "");
   const [lastName, setLastName] = useState(user?.last_name || "");
@@ -41,6 +51,82 @@ const ProfilePage = () => {
     }
   };
 
+  // Єдиний state для всіх фільтрів
+  const [filter, setFilter] = useState<{
+    type: "all" | "active" | "expired";
+    dateFrom?: string;
+    dateTo?: string;
+  }>({
+    type: "all",
+    dateFrom: undefined,
+    dateTo: undefined,
+  });
+  const [page, setPage] = useState(0);
+  const limit = 10;
+  const query = new URLSearchParams({
+    status: filter.type,
+    limit: String(limit),
+    offset: String(page * limit),
+    ...(filter.dateFrom ? { dateFrom: filter.dateFrom } : {}),
+    ...(filter.dateTo ? { dateTo: filter.dateTo } : {}),
+  }).toString();
+  const { data, isLoading, error } = useSWR<{ purchases: Purchase[] }>(
+    `/api/user/purchases?${query}`,
+    fetcher
+  );
+  const purchases: Purchase[] = data?.purchases || [];
+  // SWR для всіх покупок (без фільтрів) — для Поточних квитків
+  const { data: allPurchasesData } = useSWR<{ purchases: Purchase[] }>(
+    "/api/user/purchases?status=all&limit=1000",
+    fetcher
+  );
+  const allPurchases: Purchase[] = allPurchasesData?.purchases || [];
+  // Витягуємо всі активні квитки з усіх покупок (незалежно від фільтрів)
+  const activeTickets: Ticket[] = allPurchases
+    .flatMap((p) =>
+      p.tickets.map((t) => ({
+        ...t,
+        visitDate: t.visitDate || (t as any).visit_date || p.date || "",
+        qrSvgId: t.qrSvgId || `qr-svg-${t.number}`,
+      }))
+    )
+    .filter((t) => t.status === "active");
+  // Статистика
+  const memberSince =
+    user && "created_at" in user && user.created_at
+      ? new Date(user.created_at as string).getFullYear().toString()
+      : "—";
+  const stats = {
+    totalVisits: purchases.length,
+    activeTickets: activeTickets.length,
+    totalSpent: purchases.reduce((sum, p) => sum + (p.total || 0), 0),
+    memberSince,
+  };
+  // Масове завантаження PDF для всіх активних квитків (один PDF)
+  const handleDownloadAll = async () => {
+    await generateTicketsPDF(
+      activeTickets.map((ticket) => ({
+        museumName: "Музей Мемів",
+        firstName: ticket.firstName,
+        lastName: ticket.lastName,
+        ticketNumber: ticket.number,
+        visitDate: ticket.visitDate || "",
+        qrSvgId: ticket.qrSvgId || `qr-svg-${ticket.number}`,
+      }))
+    );
+  };
+
+  // Отримати профіль напряму з БД (тільки при першому завантаженні, без автооновлення)
+  const { data: profile, mutate: mutateProfile } = useSWR(
+    "/api/user/profile",
+    fetcher,
+    {
+      revalidateOnFocus: false, // не оновлювати при фокусі
+      revalidateOnReconnect: false, // не оновлювати при reconnect
+      dedupingInterval: 60 * 60 * 1000, // 1 година кешу
+    }
+  );
+
   return (
     <div className="text-gray-900 min-h-screen dashboard-bg">
       <header className="z-40">
@@ -70,11 +156,11 @@ const ProfilePage = () => {
       </header>
       <div className="bg-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <section className="bg-white py-12">
+          {/* <section className="bg-white py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <div className="flex flex-col items-center space-y-4 mb-6">
                 <div className="user-avatar w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                  <span>
+                  <span>  
                     {user?.first_name && user?.last_name
                       ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
                       : "?"}
@@ -95,53 +181,80 @@ const ProfilePage = () => {
                 відвідувань.
               </p>
             </div>
-          </section>
-          <section className="bg-white py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              {(!user?.first_name || !user?.last_name) && (
-                <form
-                  className="max-w-md mx-auto mt-8 space-y-4"
-                  onSubmit={handleProfileUpdate}
+          </section> */}
+          <main className="bg-white py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <UserInfo
+                firstName={profile?.first_name}
+                lastName={profile?.last_name}
+                email={profile?.email || ""}
+                onProfileUpdate={async (firstName, lastName) => {
+                  const res = await fetch("/api/profile/update", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: profile?.email,
+                      first_name: firstName,
+                      last_name: lastName,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    await mutateProfile(); // явно оновити кеш профілю після зміни
+                    await update();
+                  } else {
+                    throw new Error(data.error || "Помилка оновлення");
+                  }
+                }}
+              />
+              <UserStats {...stats} />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                <div className="lg:col-span-2">
+                  <ActiveTickets tickets={activeTickets} />
+                </div>
+                <div>
+                  <QuickActions
+                    ticketCount={activeTickets.length}
+                    onDownloadAll={handleDownloadAll}
+                  />
+                </div>
+              </div>
+              <PurchaseHistory
+                purchases={purchases}
+                onFilterChange={(f) => {
+                  setFilter((prev) => ({ ...prev, ...f }));
+                  setPage(0);
+                }}
+                onDateChange={(from, to) => {
+                  setFilter((prev) => ({
+                    ...prev,
+                    dateFrom: from || undefined,
+                    dateTo: to || undefined,
+                  }));
+                  setPage(0);
+                }}
+                dateFrom={filter.dateFrom}
+                dateTo={filter.dateTo}
+              />
+              {/* Пагінація */}
+              <div className="flex justify-center mt-6 gap-2">
+                <button
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
                 >
-                  <h2 className="text-xl font-bold mb-4">Заповніть профіль</h2>
-                  <div>
-                    <label htmlFor="firstName" className="block mb-1">
-                      Ім&#39;я
-                    </label>
-                    <input
-                      id="firstName"
-                      type="text"
-                      className="form-input w-full px-3 py-2 rounded-lg"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block mb-1">
-                      Прізвище
-                    </label>
-                    <input
-                      id="lastName"
-                      type="text"
-                      className="form-input w-full px-3 py-2 rounded-lg"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
-                  >
-                    Зберегти
-                  </button>
-                  {notification && (
-                    <div className="mt-2 text-red-600">{notification}</div>
-                  )}
-                </form>
-              )}
-              {/* Далі можна додати статистику, квитки, історію покупок */}
+                  Назад
+                </button>
+                <button
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={purchases.length < limit}
+                >
+                  Далі
+                </button>
+              </div>
             </div>
-          </section>
+          </main>
         </div>
       </div>
     </div>
