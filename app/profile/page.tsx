@@ -14,6 +14,17 @@ import "/public/style.css";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+function formatMemberSince(dateStr?: string): string {
+  if (!dateStr) return "—";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 const ProfilePage = () => {
   const { data: session, update } = useSession();
   const user = session?.user;
@@ -91,11 +102,21 @@ const ProfilePage = () => {
       }))
     )
     .filter((t) => t.status === "active");
+  // Отримати профіль напряму з БД (тільки при першому завантаженні, без автооновлення)
+  const { data: profile, mutate: mutateProfile } = useSWR(
+    "/api/user/profile",
+    fetcher,
+    {
+      revalidateOnFocus: false, // не оновлювати при фокусі
+      revalidateOnReconnect: false, // не оновлювати при reconnect
+      dedupingInterval: 60 * 60 * 1000, // 1 година кешу
+    }
+  );
+
   // Статистика
-  const memberSince =
-    user && "created_at" in user && user.created_at
-      ? new Date(user.created_at as string).getFullYear().toString()
-      : "—";
+  const memberSince = profile?.created_at
+    ? formatMemberSince(profile.created_at)
+    : "—";
   const stats = {
     totalVisits: purchases.length,
     activeTickets: activeTickets.length,
@@ -115,17 +136,6 @@ const ProfilePage = () => {
       }))
     );
   };
-
-  // Отримати профіль напряму з БД (тільки при першому завантаженні, без автооновлення)
-  const { data: profile, mutate: mutateProfile } = useSWR(
-    "/api/user/profile",
-    fetcher,
-    {
-      revalidateOnFocus: false, // не оновлювати при фокусі
-      revalidateOnReconnect: false, // не оновлювати при reconnect
-      dedupingInterval: 60 * 60 * 1000, // 1 година кешу
-    }
-  );
 
   return (
     <div className="text-gray-900 min-h-screen dashboard-bg">
