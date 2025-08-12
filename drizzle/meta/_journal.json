@@ -64,6 +64,27 @@
       "when": 1754760628596,
       "tag": "0008_thin_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1754791893535,
+      "tag": "0009_fast_vargas",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1754794625319,
+      "tag": "0010_glossy_living_tribunal",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1754853980573,
+      "tag": "0011_young_sunspot",
+      "breakpoints": true
     }
   ]
 }
