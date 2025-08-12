@@ -28,6 +28,7 @@ function formatMemberSince(dateStr?: string): string {
 const ProfilePage = () => {
   const { data: session, update } = useSession();
   const user = session?.user;
+  const isAdmin = user?.role === "admin";
   const [firstName, setFirstName] = useState(user?.first_name || "");
   const [lastName, setLastName] = useState(user?.last_name || "");
   const [notification, setNotification] = useState<string | null>(null);
@@ -151,6 +152,14 @@ const ProfilePage = () => {
               Особистий кабінет
             </div>
             <div className="flex items-center space-x-4">
+              {isAdmin && (
+                <Link
+                  href="/admin/exhibitions"
+                  className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold"
+                >
+                  Адмін-панель
+                </Link>
+              )}
               <span className="text-gray-700 hidden sm:block">
                 {user?.first_name ? `Привіт, ${user.first_name}!` : "Вітаємо!"}
               </span>
