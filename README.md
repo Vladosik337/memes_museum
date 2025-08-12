@@ -23,12 +23,13 @@ git clone <repo-url>
 cd memes_museum
 ```
 
-## 2. Environment
+2. Environment
 
-Створіть `.env` за прикладом .env.example.
-(Якщо потрібно згенерувати секретний ключ: `node -e "console.log(crypto.randomBytes(32).toString('hex'))"`)
+Створити `.env` файл за прикладом .env.example.
 
-## 3. Запуск PostgreSQL
+(якщо потрібно згенерувати секретний ключ: `node -e "console.log(crypto.randomBytes(32).toString('hex'))"`)
+
+3. Запуск PostgreSQL
 
 ```
 docker compose up -d
@@ -36,38 +37,25 @@ docker compose up -d
 
 Перевірка: `docker compose ps` (повинен працювати контейнер postgres).
 
-## 4. Прогнати міграції (створює таблиці згідно `db/schema.ts`):
+4. Прогнати міграції (створює таблиці згідно `db/schema.ts`):
 
 ```
 npx drizzle-kit migrate
 ```
 
-## 5. Запуск дев-сервера (варто враховувати, що він повільніший ніж продакшн):
+5. Заповнити БД даними
 
-```
-npm install
-npm run dev
-
-```
-
-`npm start` - для прод збірки
-
-## 6. Відкрити http://localhost:3000
-
-## 7. Логін / Адмін
+Дапм файл - `public_data.sql`.
 
 У дампі вже створені користувачі, тому після завантаження даних можна буде увійти під наявними обліковими записами.
 
 ### Як запустити `.sql` дамп у базу
 
-> Нижче приклад для PostgreSQL, що запущений у Docker, але команда працює і для локальної інсталяції.
-
-1. Скопіюйте файл дампа `public_data.sql` у директорію, де будете виконувати команду.
-2. Виконайте:
-   `bash psql -U postgres -h localhost -d memes -f public_data.sql`
-   Або в Докері:
-   `docker exec -i memes-db psql -U postgres -d memes < public_data.sql`
-   Або виконати всі INSERT команди через GUI-клієнт, наприклад, DBeaver.
+1. Скопіювати файл дампа `public_data.sql` у директорію, де будете виконуватись команда.
+2. Виконайти:
+    - `bash psql -U postgres -h localhost -d memes -f public_data.sql`
+    - або в Докері: `docker exec -i memes-db psql -U postgres -d memes < public_data.sql`
+    - або виконати всі INSERT команди через GUI-клієнт, наприклад, DBeaver.
 
 Якщо треба створити admin вручну:
 
@@ -86,14 +74,31 @@ VALUES ('Admin','User','admin@example.com','<HASH>','admin',NOW(),NOW());
 
 3. Логін на /login через форму Credentials (email + пароль).
 
+
+
+
+6. Запуск дев-сервера:
+(варто враховувати, що він повільніший ніж продакшн)
+
+```
+npm install
+npm run dev
+
+```
+
+`npm start` - для прод збірки
+
+7. Відкрити http://localhost:3000
+
+
 ## Авторизація
 
 - /login: GitHub OAuth + credentials (email/password).
 - Middleware обмежує доступ до `/profile` (user|admin) та `/admin` (тільки admin).
 
-## Функціонал (коротко)
+## Функціонал
 
-### Гості (неавторизовані)
+### Гості (неавторизовані користувачі)
 
 - Перегляд головної сторінки, сторінок виставок (public/published).
 - Перегляд популярних мемів (masonry grid, випадковий мем).
@@ -123,7 +128,7 @@ VALUES ('Admin','User','admin@example.com','<HASH>','admin',NOW(),NOW());
 - Skeleton overlay.
 - Кнопка "Випадковий мем" звертається до `/api/memes/random`.
 
-### Квитки / покупка
+### Квитки / покупки
 
 - Генерація унікального номера + QR (запис у таблиці `tickets`).
 - PDF формується на льоту (jsPDF + шрифт Open Sans).
