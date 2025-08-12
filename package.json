@@ -12,9 +12,11 @@
   "dependencies": {
     "@sentry/nextjs": "^9.42.0",
     "bcryptjs": "^3.0.2",
+    "dompurify": "^3.2.6",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.3",
     "jspdf": "^3.0.1",
+    "marked": "^16.1.2",
     "next": "15.4.4",
     "next-auth": "^4.24.11",
     "pg": "^8.16.3",
@@ -23,7 +25,8 @@
     "react-dom": "19.1.0",
     "svg2pdf": "^1.1.1",
     "svg2pdf.js": "^2.5.0",
-    "swr": "^2.3.4"
+    "swr": "^2.3.4",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
