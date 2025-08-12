@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Memes Museum
 
-## Getting Started
+Next.js 15 (App Router) application: digital museum for internet memes with exhibitions, ticketing, user profiles and admin panel.
 
-First, run the development server:
+## Стек
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 15 (app directory)
+- TypeScript
+- Tailwind CSS 4
+- Drizzle ORM + PostgreSQL
+- NextAuth (GitHub OAuth + credentials)
+- SWR (частково для даних)
+- Sentry (інтеграція готова, опціонально ввімкнути)
+- Jest + React Testing Library
+- OpenID Connect аутентифікації разом з password-based (self-hosted)
+
+## Швидкий старт
+
+1. Клонування
+
+```
+git clone <repo-url>
+cd memes_museum
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Створіть `.env` за прикладом .env.example.
+(Якщо потрібно згенерувати секретний ключ: `node -e "console.log(crypto.randomBytes(32).toString('hex'))"`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 3. Запуск PostgreSQL
 
-## Learn More
+```
+docker compose up -d
+```
 
-To learn more about Next.js, take a look at the following resources:
+Перевірка: `docker compose ps` (повинен працювати контейнер postgres).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 4. Прогнати міграції (створює таблиці згідно `db/schema.ts`):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+npx drizzle-kit migrate
+```
 
-## Deploy on Vercel
+## 5. Запуск дев-сервера (варто враховувати, що він повільніший ніж продакшн):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+npm install
+npm run dev
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+
+`npm start` - для прод збірки
+
+## 6. Відкрити http://localhost:3000
+
+## 7. Логін / Адмін
+
+У дампі вже створені користувачі, тому після завантаження даних можна буде увійти під наявними обліковими записами.
+
+### Як запустити `.sql` дамп у базу
+
+> Нижче приклад для PostgreSQL, що запущений у Docker, але команда працює і для локальної інсталяції.
+
+1. Скопіюйте файл дампа `public_data.sql` у директорію, де будете виконувати команду.
+2. Виконайте:
+   `bash psql -U postgres -h localhost -d memes -f public_data.sql`
+   Або в Докері:
+   `docker exec -i memes-db psql -U postgres -d memes < public_data.sql`
+   Або виконати всі INSERT команди через GUI-клієнт, наприклад, DBeaver.
+
+Якщо треба створити admin вручну:
+
+1. Отримати bcrypt-хеш:
+
+```
+node -e "const b=require('bcryptjs');b.hash('admin123',10).then(h=>console.log(h))"
+```
+
+2. Вставити:
+
+```
+INSERT INTO users(first_name,last_name,email,password_hash,role,created_at,updated_at)
+VALUES ('Admin','User','admin@example.com','<HASH>','admin',NOW(),NOW());
+```
+
+3. Логін на /login через форму Credentials (email + пароль).
+
+## Авторизація
+
+- /login: GitHub OAuth + credentials (email/password).
+- Middleware обмежує доступ до `/profile` (user|admin) та `/admin` (тільки admin).
+
+## Функціонал (коротко)
+
+### Гості (неавторизовані)
+
+- Перегляд головної сторінки, сторінок виставок (public/published).
+- Перегляд популярних мемів (masonry grid, випадковий мем).
+- Покупка квитка без створення акаунта (вводять дані – генерується квиток + PDF / QR).
+- Ознайомлення з правилами музею (модалка з accessibility).
+
+### Авторизовані користувачі
+
+- Все як гість + особистий кабінет `/profile`.
+- Перегляд історії покупок (фільтри).
+- Активні квитки: перегляд, завантаження / повторне завантаження PDF (генерація через `utils/generateTicketPDF.ts`).
+- Редагування профілю: оновлення first_name / last_name (email незмінний).
+- Залишення відгуку з прапорцем "allow_publish".
+
+### Адмін
+
+Адмін-панель у `/admin` (розділи можуть бути підсторінками):
+
+- Виставки (`/admin/exhibitions`): створення, редагування, публікація (перевірка required), архівація, видалення, оптимістичне видалення, slug авто-генерація. Перетворення Markdown у сторінки постів.
+- Тарифи / ціни квитків (`ticket_prices`): управління актуальними та майбутніми цінами (endpoints передбачені у схемі).
+- Квитки: перегляд / фільтрація / управління статусом (active / cancelled / used).
+- Мем-контент (API для мемів)
+
+### Мем-галерея (деталі)
+
+- 5 колонок Masonry.
+- Skeleton overlay.
+- Кнопка "Випадковий мем" звертається до `/api/memes/random`.
+
+### Квитки / покупка
+
+- Генерація унікального номера + QR (запис у таблиці `tickets`).
+- PDF формується на льоту (jsPDF + шрифт Open Sans).
+- Можливість придбати кілька квитків (+групові покупки з `purchases`).
