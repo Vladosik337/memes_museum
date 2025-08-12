@@ -60,6 +60,7 @@ function FullscreenModal({
           width={800}
           height={600}
           className="modal-fullscreen-image"
+          style={{ height: "auto", width: "auto", maxWidth: "100%" }}
         />
         <div className="modal-caption">{caption}</div>
       </div>
@@ -112,6 +113,7 @@ export default function PromoSection() {
               width={320}
               height={320}
               className="doge-hero"
+              style={{ height: "auto", width: "auto", maxWidth: 320 }}
             />
             <div className="floating-memes absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
               <div className="meme-bubble meme-1">ІНТЕРАКТИВ</div>
@@ -131,8 +133,9 @@ export default function PromoSection() {
                   <Image
                     src={zone.src}
                     alt={zone.alt}
-                    width={120}
-                    height={80}
+                    width={160}
+                    height={100}
+                    /* intrinsic size matches .museum-zone to avoid aspect warnings */
                   />
                   <div className="zone-label">{zone.label}</div>
                 </div>
