@@ -1,0 +1,1 @@
+ALTER TABLE "exhibitions" ADD COLUMN "banner_color" varchar(32) DEFAULT 'green' NOT NULL;
