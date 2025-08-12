@@ -33,7 +33,12 @@ const LoginPage: React.FC = () => {
 
   React.useEffect(() => {
     if (session?.user?.email) {
-      router.push(callbackUrl);
+      // Редірект залежно від ролі
+      if (session.user.role === "admin") {
+        router.replace("/admin/exhibitions");
+      } else {
+        router.replace(callbackUrl);
+      }
     }
   }, [session, router, callbackUrl]);
 
