@@ -10,31 +10,11 @@ export default function Footer() {
             <p className="text-orange-400 font-medium">
               Перший в Україні музей мемів!
             </p>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+            <p className="text-gray-300 leading-relaxed mb-6">
               Занурся в історію інтернет-культури! Від перших мемів 90-х до
               вірусних хітів сьогодення. Ми зберігаємо та популяризуємо цифрову
               спадщину людства.
             </p>
-            <div className="flex space-x-4">
-              <a
-                href="#"
-                className="bg-orange-600 hover:bg-orange-700 p-3 rounded-full transition-colors duration-300"
-              >
-                <span className="text-xl">📘</span>
-              </a>
-              <a
-                href="#"
-                className="bg-orange-600 hover:bg-orange-700 p-3 rounded-full transition-colors duration-300"
-              >
-                <span className="text-xl">📸</span>
-              </a>
-              <a
-                href="#"
-                className="bg-orange-600 hover:bg-orange-700 p-3 rounded-full transition-colors duration-300"
-              >
-                <span className="text-xl">🎮</span>
-              </a>
-            </div>
           </div>
           {/* Контакти */}
           <div>
