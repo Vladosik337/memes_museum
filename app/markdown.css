@@ -1,0 +1,241 @@
+/* Markdown / Exhibition specific styles extracted from global style.css */
+.exhibition-markdown {
+  --emd-font-body: "Open Sans", system-ui, sans-serif;
+  font-family: var(--emd-font-body);
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: #1f2937;
+  max-width: 62ch;
+}
+.exhibition-markdown p {
+  margin: 0 0 1.1em;
+}
+.exhibition-markdown h1,
+.exhibition-markdown h2,
+.exhibition-markdown h3,
+.exhibition-markdown h4 {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+  position: relative;
+  line-height: 1.25;
+  scroll-margin-top: 6rem;
+}
+.exhibition-markdown h1 {
+  font-size: 2.2rem;
+  margin: 2.4em 0 0.6em;
+  border-bottom: 2px solid #f97316;
+  padding-bottom: 0.3em;
+  background: linear-gradient(90deg, #fb923c, #f97316, #ea580c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: 0 2px 6px rgba(251, 146, 60, 0.25);
+}
+.exhibition-markdown h2 {
+  font-size: 1.8rem;
+  margin: 2.2em 0 0.6em;
+  border-left: 6px solid #fed7aa;
+  padding-left: 0.55em;
+}
+.exhibition-markdown h3 {
+  font-size: 1.4rem;
+  margin: 1.8em 0 0.5em;
+}
+.exhibition-markdown h4 {
+  font-size: 1.15rem;
+  margin: 1.6em 0 0.5em;
+}
+
+.exhibition-markdown ul,
+.exhibition-markdown ol {
+  margin: 1.1em 0 1.3em 1.5em;
+  padding: 0;
+}
+.exhibition-markdown ul {
+  list-style: none;
+}
+.exhibition-markdown ul > li {
+  position: relative;
+  padding-left: 0.9em;
+}
+.exhibition-markdown ul > li:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.75em;
+  width: 0.5em;
+  height: 0.5em;
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  border-radius: 3px;
+}
+.exhibition-markdown ol {
+  list-style: decimal;
+}
+.exhibition-markdown li {
+  margin: 0.3em 0 0.4em;
+}
+.exhibition-markdown a {
+  color: #c2410c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.exhibition-markdown a:hover {
+  color: #9a3412;
+}
+.exhibition-markdown blockquote {
+  margin: 1.8em 0;
+  padding: 1.1em 1.25em 1.1em 1.3em;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border-left: 6px solid #fb923c;
+  border-radius: 8px;
+  font-style: italic;
+  color: #7c2d12;
+  position: relative;
+}
+.exhibition-markdown blockquote:before {
+  content: "“";
+  position: absolute;
+  top: -0.3em;
+  left: 0.15em;
+  font-size: 3.5rem;
+  color: #fed7aa;
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+.exhibition-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: #1f2937;
+  color: #fef3c7;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.exhibition-markdown pre {
+  background: #1f2937;
+  color: #fef3c7;
+  padding: 1em 1.1em;
+  border-radius: 10px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.55;
+  box-shadow: 0 4px 18px -4px rgba(0, 0, 0, 0.35);
+  margin: 2em 0;
+}
+.exhibition-markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.exhibition-markdown hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, #fff, #fed7aa, #fff);
+  margin: 3.2em 0;
+}
+.exhibition-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 2.2em 0;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 3px 14px -4px rgba(0, 0, 0, 0.2);
+}
+.exhibition-markdown th,
+.exhibition-markdown td {
+  padding: 0.7em 0.9em;
+  border-bottom: 1px solid #f1f5f9;
+}
+.exhibition-markdown th {
+  background: #ffedd5;
+  text-align: left;
+  font-weight: 600;
+}
+.exhibition-markdown tr:nth-child(even) td {
+  background: #fff7ed;
+}
+.exhibition-markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 14px;
+  margin: 2.2em auto;
+  box-shadow: 0 6px 24px -6px rgba(0, 0, 0, 0.25);
+  display: block;
+}
+.exhibition-markdown strong {
+  font-weight: 700;
+  color: #111827;
+}
+.exhibition-markdown em {
+  color: #7c2d12;
+}
+.exhibition-markdown kbd {
+  background: #111827;
+  color: #fef3c7;
+  padding: 0.25em 0.5em;
+  border-radius: 6px;
+  font-size: 0.7em;
+  box-shadow: inset 0 -2px 0 #fb923c;
+}
+.exhibition-markdown .highlight {
+  background: #fffbe6;
+  padding: 0.25em 0.35em;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px #fde68a;
+}
+.exhibition-markdown > :first-child {
+  margin-top: 0;
+}
+.exhibition-markdown > :last-child {
+  margin-bottom: 0;
+}
+.exhibition-markdown p + p {
+  margin-top: 0.2em;
+}
+.exhibition-markdown h2 + h3 {
+  margin-top: 1.2em;
+}
+.exhibition-markdown h1 + h2 {
+  margin-top: 1.4em;
+}
+.exhibition-markdown details {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 0.8em 1em;
+  border-radius: 10px;
+  margin: 1.8em 0;
+}
+.exhibition-markdown summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #9a3412;
+}
+.exhibition-markdown mark {
+  background: #fde68a;
+  padding: 0.15em 0.3em;
+  border-radius: 3px;
+}
+.exhibition-markdown sup {
+  font-size: 0.65em;
+}
+.exhibition-markdown sub {
+  font-size: 0.65em;
+}
+@media (max-width: 640px) {
+  .exhibition-markdown {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+  .exhibition-markdown h1 {
+    font-size: 1.85rem;
+  }
+  .exhibition-markdown h2 {
+    font-size: 1.55rem;
+  }
+  .exhibition-markdown h3 {
+    font-size: 1.25rem;
+  }
+  .exhibition-markdown pre {
+    font-size: 0.78em;
+  }
+}
