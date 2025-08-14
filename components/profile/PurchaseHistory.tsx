@@ -87,7 +87,7 @@ export const PurchaseHistory: React.FC<PurchaseHistoryProps> = ({
             Історія покупок порожня
           </h3>
           <p className="text-gray-500">
-            Ваші майбутні покупки з&#39;являться тут
+            Ваші майбутні покупки з{"'"}являться тут
           </p>
         </div>
       ) : (
