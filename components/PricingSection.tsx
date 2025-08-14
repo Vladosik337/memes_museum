@@ -9,7 +9,11 @@ export default function PricingSection() {
   const [modalType, setModalType] = useState<string | null>(null);
   const { data: pricesData } = useSWR<{
     prices: { type: string; price: number }[];
-  }>("/api/ticket-prices", (url) => fetch(url).then((r) => r.json()));
+  }>("/api/ticket-prices", (url: string) =>
+    fetch(url).then(
+      (r) => r.json() as Promise<{ prices: { type: string; price: number }[] }>
+    )
+  );
   const weekdayPrice =
     pricesData?.prices.find((p) => p.type === "weekday")?.price ?? 250;
   const weekendPrice =
