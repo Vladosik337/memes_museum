@@ -25,20 +25,15 @@ export default function TicketPurchasePage() {
   // інтеграція next-auth
   const {
     isAuthenticated,
-    user: authUser,
     loading: authLoading,
     signIn,
   } = useTicketFormUser(setForm);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [ticketData, setTicketData] = useState<null | {
-    number: string;
-    qr_code: string;
-  }>(null);
   const [ticketsData, setTicketsData] = useState<
     Array<{
       number: string;
@@ -110,61 +105,6 @@ export default function TicketPurchasePage() {
     return null;
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await fetch("/api/tickets/purchase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          email: form.email,
-          date: form.date,
-          comment: form.comment,
-          guests: form.guests,
-          userId: authUser?.id || null,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Помилка покупки");
-      setSuccess("Квитки успішно заброньовано!");
-      setTicketsData(
-        data.tickets.map((t: any) => ({
-          number: t.number,
-          qr_code: t.qr_code,
-          first_name: t.first_name,
-          last_name: t.last_name,
-        }))
-      );
-      setForm({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        date: "",
-        comment: "",
-        guests: [],
-      });
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError("Помилка покупки");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function handleSummary(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setShowSummary(true);
@@ -198,12 +138,19 @@ export default function TicketPurchasePage() {
       if (!data.success) throw new Error(data.error || "Помилка покупки");
       setSuccess("Квитки успішно заброньовано!");
       setTicketsData(
-        data.tickets.map((t: any) => ({
-          number: t.number,
-          qr_code: t.qr_code,
-          first_name: t.first_name,
-          last_name: t.last_name,
-        }))
+        data.tickets.map(
+          (t: {
+            number: string;
+            qr_code: string;
+            first_name: string;
+            last_name: string;
+          }) => ({
+            number: t.number,
+            qr_code: t.qr_code,
+            first_name: t.first_name,
+            last_name: t.last_name,
+          })
+        )
       );
       setForm({
         firstName: user.firstName,
@@ -401,7 +348,9 @@ export default function TicketPurchasePage() {
                   Підсумок замовлення
                 </h4>
                 <div className="mb-4 text-left">
-                  <div className="font-bold">Ім'я: {form.firstName}</div>
+                  <div className="font-bold">
+                    Ім&amp;#39;я: {form.firstName}
+                  </div>
                   <div className="font-bold">Прізвище: {form.lastName}</div>
                   <div className="font-bold">Email: {form.email}</div>
                   <div className="font-bold">Дата: {form.date}</div>
