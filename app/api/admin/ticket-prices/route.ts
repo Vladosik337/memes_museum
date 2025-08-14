@@ -62,19 +62,25 @@ export async function POST(req: NextRequest) {
 }
 
 // PATCH: активувати/деактивувати тариф
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest) {
+  const url = new URL(req.url);
+  const idStr = url.searchParams.get("id");
+  if (!idStr) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
+  const id = Number(idStr);
+  if (Number.isNaN(id)) {
+    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  }
   const body = await req.json();
   const { is_active } = body;
   // Дістаємо поточний тариф і його тип
   const current = await db
     .select()
     .from(ticket_prices)
-    .where(eq(ticket_prices.id, Number(params.id)));
+    .where(eq(ticket_prices.id, id));
   const type = current[0]?.type;
-  console.log("PATCH ticket-prices", { id: params.id, is_active, type });
+  console.log("PATCH ticket-prices", { id, is_active, type });
   if (!type) {
     console.log("Тариф не знайдено");
     return NextResponse.json({ error: "Тариф не знайдено" }, { status: 404 });
@@ -84,18 +90,13 @@ export async function PATCH(
     const updateRes = await db
       .update(ticket_prices)
       .set({ is_active: false })
-      .where(
-        and(
-          eq(ticket_prices.type, type),
-          ne(ticket_prices.id, Number(params.id))
-        )
-      );
+      .where(and(eq(ticket_prices.type, type), ne(ticket_prices.id, id)));
     console.log("Деактивовано тарифи типу", type, "updateRes:", updateRes);
     // Активуємо лише цей тариф
     const [updated] = await db
       .update(ticket_prices)
       .set({ is_active: true })
-      .where(eq(ticket_prices.id, Number(params.id)))
+      .where(eq(ticket_prices.id, id))
       .returning();
     console.log("Активовано тариф", updated);
     return NextResponse.json({ price: updated });
@@ -108,7 +109,7 @@ export async function PATCH(
         and(
           eq(ticket_prices.type, type),
           eq(ticket_prices.is_active, true),
-          ne(ticket_prices.id, Number(params.id))
+          ne(ticket_prices.id, id)
         )
       );
     console.log("activeCount для типу", type, ":", activeCount);
@@ -122,7 +123,7 @@ export async function PATCH(
     const [updated] = await db
       .update(ticket_prices)
       .set({ is_active: false })
-      .where(eq(ticket_prices.id, Number(params.id)))
+      .where(eq(ticket_prices.id, id))
       .returning();
     console.log("Деактивовано тариф", updated);
     return NextResponse.json({ price: updated });

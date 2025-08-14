@@ -16,8 +16,11 @@ export async function GET() {
         or(isNull(ticket_prices.valid_to), gte(ticket_prices.valid_to, today))
       )
     );
+
+  type TicketPrice = typeof ticket_prices.$inferSelect;
+
   // Повертаємо лише найсвіжіші ціни для кожного типу
-  const latest: Record<string, { price: number; type: string }> = {};
+  const latest: Record<string, TicketPrice> = {};
   for (const p of prices) {
     if (
       !latest[p.type] ||
