@@ -8,7 +8,7 @@ import type { Purchase, Ticket } from "@/types/profile";
 import { generateTicketsPDF } from "@/utils/generateTicketPDF";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import "/public/style.css";
 
@@ -29,40 +29,6 @@ const ProfilePage = () => {
   const { data: session, update } = useSession();
   const user = session?.user;
   const isAdmin = user?.role === "admin";
-  const [firstName, setFirstName] = useState(user?.first_name || "");
-  const [lastName, setLastName] = useState(user?.last_name || "");
-  const [notification, setNotification] = useState<string | null>(null);
-
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // потім видалити
-    console.log({
-      email: user?.email,
-      first_name: firstName,
-      last_name: lastName,
-    });
-    if (!firstName || !lastName) {
-      setNotification("Всі поля обовʼязкові");
-      return;
-    }
-    const res = await fetch("/api/profile/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: user?.email,
-        first_name: firstName,
-        last_name: lastName,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setNotification("Профіль оновлено!");
-      window.location.reload();
-    } else {
-      setNotification(data.error || "Помилка оновлення");
-    }
-  };
-
   // Єдиний state для всіх фільтрів
   const [filter, setFilter] = useState<{
     type: "all" | "active" | "expired";
@@ -82,7 +48,7 @@ const ProfilePage = () => {
     ...(filter.dateFrom ? { dateFrom: filter.dateFrom } : {}),
     ...(filter.dateTo ? { dateTo: filter.dateTo } : {}),
   }).toString();
-  const { data, isLoading, error } = useSWR<{ purchases: Purchase[] }>(
+  const { data } = useSWR<{ purchases: Purchase[] }>(
     `/api/user/purchases?${query}`,
     fetcher
   );
@@ -98,7 +64,7 @@ const ProfilePage = () => {
     .flatMap((p) =>
       p.tickets.map((t) => ({
         ...t,
-        visitDate: t.visitDate || (t as any).visit_date || p.date || "",
+        visitDate: t.visitDate || p.date || "",
         qrSvgId: t.qrSvgId || `qr-svg-${t.number}`,
       }))
     )

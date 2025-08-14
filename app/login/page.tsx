@@ -2,11 +2,11 @@
 import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import "/public/style.css";
 
-const LoginPage: React.FC = () => {
-  const { data: session, status } = useSession();
+const LoginPageInner: React.FC = () => {
+  const { data: session } = useSession();
   const [showRegister, setShowRegister] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialCallbackUrl = searchParams.get("callbackUrl") || "/profile";
-  const [callbackUrl, setCallbackUrl] = useState(initialCallbackUrl);
+  const [callbackUrl] = useState(initialCallbackUrl);
 
   React.useEffect(() => {
     if (notification) {
@@ -237,7 +237,7 @@ const LoginPage: React.FC = () => {
                       className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                     />
                     <span className="ml-2 text-sm text-gray-600">
-                      Запам&#39;ятати мене
+                      Запам{"'"}ятати мене
                     </span>
                   </label>
                   <a
@@ -288,7 +288,7 @@ const LoginPage: React.FC = () => {
               >
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="register-firstname">Ім&#39;я</label>
+                    <label htmlFor="register-firstname">Ім{"'"}я</label>
                     <input
                       id="register-firstname"
                       type="text"
@@ -384,5 +384,11 @@ const LoginPage: React.FC = () => {
     </div>
   );
 };
+
+const LoginPage: React.FC = () => (
+  <Suspense fallback={<div />}>
+    <LoginPageInner />
+  </Suspense>
+);
 
 export default LoginPage;
