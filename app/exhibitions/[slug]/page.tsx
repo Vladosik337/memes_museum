@@ -15,10 +15,10 @@ const getExhibition = cache(async (slug: string) => {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }> | { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const awaited = params instanceof Promise ? await params : params;
-  const ex = await getExhibition(awaited.slug);
+  const { slug } = await params;
+  const ex = await getExhibition(slug);
   if (!ex) return { title: "Виставка не знайдена" };
   return {
     title: `${ex.title} | Музей Мемів`,
@@ -84,10 +84,10 @@ function parseMarkdownWithHeadings(md: string) {
 export default async function ExhibitionPage({
   params,
 }: {
-  params: Promise<{ slug: string }> | { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const awaited = params instanceof Promise ? await params : params;
-  const ex = await getExhibition(awaited.slug);
+  const { slug } = await params;
+  const ex = await getExhibition(slug);
   if (!ex) notFound();
   const { html, headings } = parseMarkdownWithHeadings(ex.content_md || "");
   const dateLabel = buildDateLabel(ex);
