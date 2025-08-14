@@ -9,7 +9,9 @@ export function parseMarkdownWithAnchors(markdown: string) {
   renderer.heading = function ({ depth, tokens, raw }) {
     // текст із токенів (Marked v5+)
     const text = tokens
-      ? tokens.map((t: any) => t.raw || t.text || "").join("")
+      ? tokens
+          .map((t: { raw?: string; text?: string }) => t.raw || t.text || "")
+          .join("")
       : raw || "";
     const id = text
       .toLowerCase()
