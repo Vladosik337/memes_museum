@@ -35,7 +35,7 @@ export const LeaveReviewModal: React.FC<LeaveReviewModalProps> = ({
       } else {
         setError(data.error || "Помилка відправки відгуку");
       }
-    } catch (e) {
+    } catch {
       setError("Помилка мережі");
     } finally {
       setLoading(false);
