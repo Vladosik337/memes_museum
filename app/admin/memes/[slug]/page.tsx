@@ -683,8 +683,10 @@ export default function AdminMemeEditorPage() {
                       },
                     ],
                   });
-                } catch (err: any) {
-                  setUploadErr(err.message);
+                } catch (err: unknown) {
+                  const message =
+                    err instanceof Error ? err.message : "Upload failed";
+                  setUploadErr(message);
                 } finally {
                   setUploading(false);
                   if (form) form.reset();
