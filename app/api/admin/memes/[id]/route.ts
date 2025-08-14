@@ -1,14 +1,15 @@
 import * as service from "@/db/memes.service";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // /api/admin/memes/[id]
 // PATCH: update meme (partial)
 // DELETE: delete meme
 export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idNum = Number(params.id);
+  const { id } = await params;
+  const idNum = Number(id);
   if (Number.isNaN(idNum))
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   try {
@@ -25,10 +26,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idNum = Number(params.id);
+  const { id } = await params;
+  const idNum = Number(id);
   if (Number.isNaN(idNum))
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   try {

@@ -1,13 +1,14 @@
 import * as service from "@/db/exhibitions.service";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // Public endpoint: GET /api/exhibitions/[slug]
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: { slug: string } }
+  _req: Request,
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const row = await service.getBySlug(params.slug);
+    const { slug } = await params;
+    const row = await service.getBySlug(slug);
     if (!row || row.status !== "published") {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }

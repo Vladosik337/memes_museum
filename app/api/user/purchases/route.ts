@@ -1,6 +1,6 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/db";
 import { purchases, tickets } from "@/db/schema";
+import { authOptions } from "@/lib/auth";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
@@ -21,19 +21,17 @@ export async function GET(request: NextRequest) {
   const offset = Number(searchParams.get("offset") || 0);
 
   // Побудова where
-  let whereClause = eq(purchases.user_id, userId);
-  if (dateFrom) {
-    whereClause = and(whereClause, gte(purchases.purchase_date, dateFrom));
-  }
-  if (dateTo) {
-    whereClause = and(whereClause, lte(purchases.purchase_date, dateTo));
-  }
+  const whereExpr = and(
+    eq(purchases.user_id, userId),
+    ...(dateFrom ? [gte(purchases.purchase_date, dateFrom)] : []),
+    ...(dateTo ? [lte(purchases.purchase_date, dateTo)] : [])
+  );
 
   // Отримати покупки з фільтрами та пагінацією
-  let purchaseRows = await db
+  const purchaseRows = await db
     .select()
     .from(purchases)
-    .where(whereClause)
+    .where(whereExpr)
     .orderBy(desc(purchases.created_at))
     .limit(limit)
     .offset(offset);

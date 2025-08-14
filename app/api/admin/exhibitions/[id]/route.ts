@@ -1,14 +1,15 @@
 import * as service from "@/db/exhibitions.service";
 import type { ExhibitionStatus } from "@/types/exhibition";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // /api/admin/exhibitions/[id]
 // PATCH: update fields (including status)
 export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idNum = Number(params.id);
+  const { id } = await params;
+  const idNum = Number(id);
   if (Number.isNaN(idNum))
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   try {
@@ -26,10 +27,11 @@ export async function PATCH(
 
 // POST /api/admin/exhibitions/[id]/status  (alternative we keep setStatus under PATCH? But we expose dedicated method via query param)
 export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idNum = Number(params.id);
+  const { id } = await params;
+  const idNum = Number(id);
   if (Number.isNaN(idNum))
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   try {
@@ -50,10 +52,11 @@ export async function POST(
 
 // /api/admin/exhibitions/[id]
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idNum = Number(params.id);
+  const { id } = await params;
+  const idNum = Number(id);
   if (Number.isNaN(idNum))
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   try {
@@ -71,10 +74,11 @@ export async function GET(
 }
 
 export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const idNum = Number(params.id);
+  const { id } = await params;
+  const idNum = Number(id);
   if (Number.isNaN(idNum))
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   try {

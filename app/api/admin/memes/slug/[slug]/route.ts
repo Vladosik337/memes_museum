@@ -1,20 +1,14 @@
 import * as service from "@/db/memes.service";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 // /api/admin/memes/slug/[slug]
 // GET: fetch full meme by slug (admin view)
 export async function GET(
-  _req: NextRequest,
-  context: { params: { slug: string } } | { params: Promise<{ slug: string }> }
+  _req: Request,
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    let slugParam: { slug: string };
-    if (context.params instanceof Promise) {
-      slugParam = await context.params;
-    } else {
-      slugParam = context.params;
-    }
-    const slug = slugParam.slug;
+    const { slug } = await params;
     if (!slug)
       return NextResponse.json({ error: "Slug required" }, { status: 400 });
     const meme = await service.getBySlug(slug);

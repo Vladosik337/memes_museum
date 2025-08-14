@@ -1,15 +1,16 @@
 import { db } from "@/db";
 import { tickets } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = Number(params.id);
-    if (Number.isNaN(id))
+    const { id } = await params;
+    const idNum = Number(id);
+    if (Number.isNaN(idNum))
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     const body = await req.json();
     const status = body.status as string | undefined;
@@ -18,9 +19,9 @@ export async function PATCH(
     if (!["active", "cancelled", "used"].includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
-    await db.update(tickets).set({ status }).where(eq(tickets.id, id));
+    await db.update(tickets).set({ status }).where(eq(tickets.id, idNum));
     return NextResponse.json({ success: true });
-  } catch (e) {
+  } catch (e: unknown) {
     console.error(e);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
