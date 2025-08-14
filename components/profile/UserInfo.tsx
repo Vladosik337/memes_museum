@@ -1,4 +1,3 @@
-import { signOut } from "next-auth/react";
 import React, { useState } from "react";
 
 type UserInfoProps = {
@@ -36,7 +35,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({
       if (onProfileUpdate) await onProfileUpdate(firstName, lastName);
       setEditMode(false);
       setNotification("Профіль оновлено!");
-    } catch (e) {
+    } catch {
       setNotification("Помилка оновлення");
     } finally {
       setLoading(false);
@@ -104,7 +103,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({
                 >
                   Редагувати
                 </button>
-                
               </>
             )}
           </div>
