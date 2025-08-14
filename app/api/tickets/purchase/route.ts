@@ -178,7 +178,21 @@ export async function POST(req: NextRequest) {
 
 // Типізація для toMuseumTicket/toMuseumPurchase
 function toMuseumTicket(dbTicket: unknown): MuseumTicket {
-  const t = dbTicket as any;
+  const t = dbTicket as {
+    id: number;
+    user_id: number;
+    purchase_id: number | null;
+    first_name: string;
+    last_name: string;
+    email: string;
+    visit_date: string | Date;
+    comment: string | null;
+    number: string;
+    qr_code: string;
+    status: MuseumTicket["status"];
+    isOwner: boolean;
+    created_at?: Date | null;
+  };
   return {
     id: t.id,
     user_id: t.user_id,
@@ -186,21 +200,34 @@ function toMuseumTicket(dbTicket: unknown): MuseumTicket {
     first_name: t.first_name,
     last_name: t.last_name,
     email: t.email,
-    visit_date: String(t.visit_date),
+    visit_date:
+      typeof t.visit_date === "string"
+        ? t.visit_date
+        : t.visit_date.toISOString().split("T")[0],
     comment: t.comment ?? undefined,
     number: t.number,
     qr_code: t.qr_code,
     status: t.status,
-    is_owner: t.isOwner,
+    is_owner: t.isOwner ? 1 : 0,
     created_at: t.created_at ? t.created_at.toISOString() : "",
   };
 }
 function toMuseumPurchase(dbPurchase: unknown): MuseumPurchase {
-  const p = dbPurchase as any;
+  const p = dbPurchase as {
+    id: number;
+    user_id: number;
+    purchase_date: string | Date;
+    total_amount: number;
+    status: MuseumPurchase["status"];
+    created_at?: Date | null;
+  };
   return {
     id: p.id,
     user_id: p.user_id,
-    purchase_date: String(p.purchase_date),
+    purchase_date:
+      typeof p.purchase_date === "string"
+        ? p.purchase_date
+        : p.purchase_date.toISOString().split("T")[0],
     total_amount: p.total_amount,
     status: p.status,
     created_at: p.created_at ? p.created_at.toISOString() : "",
